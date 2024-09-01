@@ -10,8 +10,6 @@ import csv
 import os
 import requests
 
-
-
 # Tunable Parameters
 START_DATE = '2018-01-01'
 END_DATE = '2024-08-30'
@@ -157,7 +155,7 @@ accuracy_score = (1 - composite_score) * 100
 timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 # Log the results to a CSV file
-log_file = '/home/t0fum4n/BTCML/btc_price_predictions.csv' #need to set as vairable
+log_file = '/home/t0fum4n/BTCML/btc_price_predictions.csv'
 header = ['Timestamp', 'Current Price', 'Predicted Price', 'Percentage Change', 'MAE', 'MSE', 'RMSE', 'MAPE', 'Accuracy Score']
 
 # Check if the log file exists and add the header if not
@@ -168,8 +166,7 @@ with open(log_file, 'a', newline='') as file:
         writer.writerow(header)  # Write the header if the file doesn't exist
     writer.writerow([timestamp, current_price, predicted_price[0], percentage_change, mae, mse, rmse, mape, accuracy_score])
 
-
-# After your script completes successfully
+# Function to send ntfy notification with dynamic content
 def send_ntfy_notification(accuracy_score):
     topic = 'btc-script-run'  # Replace with your chosen topic
     message = f'TheGoodGood.py script completed successfully. Model Accuracy Score: {accuracy_score:.2f}%'
@@ -183,9 +180,6 @@ def send_ntfy_notification(accuracy_score):
     else:
         print(f'Failed to send notification. Status code: {response.status_code}')
 
-
-
-
 # Output the logging information
 print(f"Timestamp: {timestamp}")
 print(f"Current Bitcoin price: {current_price:.2f} USD")
@@ -196,4 +190,6 @@ print(f"Mean Squared Error (MSE): {mse:.2f}")
 print(f"Root Mean Squared Error (RMSE): {rmse:.2f} USD")
 print(f"Mean Absolute Percentage Error (MAPE): {mape:.2%}")
 print(f"Model Accuracy Score: {accuracy_score:.2f}%")
-send_ntfy_notification()
+
+# Call the notification function with the accuracy score
+send_ntfy_notification(accuracy_score)
