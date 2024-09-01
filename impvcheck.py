@@ -3,7 +3,8 @@ import pandas as pd
 from datetime import datetime, timedelta
 import csv
 import os
-import subprocess
+import requests
+
 
 # Function to fetch and display the current Bitcoin price with a timestamp
 def check_btc_price():
@@ -74,8 +75,16 @@ def check_prediction_24_hours_ago(log_file, accuracy_log_file):
 # After your script completes successfully
 def send_ntfy_notification():
     topic = 'btc-script-run'  # Replace with your chosen topic
-    message = 'check.py script completed successfully.'
-    subprocess.run(['ntfy', 'publish', topic, '-m', message])
+    message = 'impvcheck.py script completed successfully.'
+    url = f'https://ntfy.sh/{topic}'
+
+    # Send the notification as an HTTP POST request
+    response = requests.post(url, data=message)
+
+    if response.status_code == 200:
+        print('Notification sent successfully!')
+    else:
+        print(f'Failed to send notification. Status code: {response.status_code}')
 
 
 # Example usage: Check prediction made 24 hours ago
