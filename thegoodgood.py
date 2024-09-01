@@ -8,7 +8,8 @@ from tensorflow.keras.layers import LSTM, Dense, Dropout, Input
 from datetime import datetime
 import csv
 import os
-import subprocess
+import requests
+
 
 
 # Tunable Parameters
@@ -171,8 +172,16 @@ with open(log_file, 'a', newline='') as file:
 # After your script completes successfully
 def send_ntfy_notification():
     topic = 'btc-script-run'  # Replace with your chosen topic
-    message = 'thegoodgood.py script completed successfully.'
-    subprocess.run(['ntfy', 'publish', topic, '-m', message])
+    message = 'TheGoodGood.py script completed successfully.'
+    url = f'https://ntfy.sh/{topic}'
+
+    # Send the notification as an HTTP POST request
+    response = requests.post(url, data=message)
+
+    if response.status_code == 200:
+        print('Notification sent successfully!')
+    else:
+        print(f'Failed to send notification. Status code: {response.status_code}')
 
 
 
