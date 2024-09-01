@@ -154,7 +154,7 @@ accuracy_score = (1 - composite_score) * 100
 timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 # Log the results to a CSV file
-log_file = '/home/t0fum4n/BTCML/btc_price_predictions.csv'
+log_file = '/home/t0fum4n/BTCML/btc_price_predictions.csv' #need to set as vairable
 header = ['Timestamp', 'Current Price', 'Predicted Price', 'Percentage Change', 'MAE', 'MSE', 'RMSE', 'MAPE', 'Accuracy Score']
 
 # Check if the log file exists and add the header if not
