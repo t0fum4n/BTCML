@@ -170,9 +170,9 @@ with open(log_file, 'a', newline='') as file:
 
 
 # After your script completes successfully
-def send_ntfy_notification():
+def send_ntfy_notification(accuracy_score):
     topic = 'btc-script-run'  # Replace with your chosen topic
-    message = 'TheGoodGood.py script completed successfully.'
+    message = f'TheGoodGood.py script completed successfully. Model Accuracy Score: {accuracy_score:.2f}%'
     url = f'https://ntfy.sh/{topic}'
 
     # Send the notification as an HTTP POST request
