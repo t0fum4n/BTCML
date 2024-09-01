@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import csv
 import os
+import subprocess
 
 # Function to fetch and display the current Bitcoin price with a timestamp
 def check_btc_price():
@@ -70,7 +71,15 @@ def check_prediction_24_hours_ago(log_file, accuracy_log_file):
         writer.writerow([datetime.now().strftime('%Y-%m-%d %H:%M:%S'), closest_timestamp,
                          predicted_price_24_hours_ago, current_price, percentage_accuracy])
 
+# After your script completes successfully
+def send_ntfy_notification():
+    topic = 'btc-script-run'  # Replace with your chosen topic
+    message = 'check.py script completed successfully.'
+    subprocess.run(['ntfy', 'publish', topic, '-m', message])
+
+
 # Example usage: Check prediction made 24 hours ago
 prediction_log_file = '/home/t0fum4n/BTCML/btc_price_predictions.csv'  # Path to the log file with predictions
 accuracy_log_file = '/home/t0fum4n/BTCML/btc_price_accuracy_check.csv'  # Path to the separate log file for accuracy checks
 check_prediction_24_hours_ago(prediction_log_file, accuracy_log_file)
+send_ntfy_notification()
