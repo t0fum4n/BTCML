@@ -5,7 +5,6 @@ import csv
 import os
 import requests
 
-
 # Function to fetch and display the current Bitcoin price with a timestamp
 def check_btc_price():
     # Fetch the latest Bitcoin price data from Yahoo Finance
@@ -39,7 +38,7 @@ def check_prediction_24_hours_ago(log_file, accuracy_log_file):
 
     if filtered_df.empty:
         print(f"No prediction found within 1 hour of 24 hours ago: {target_time_24_hours_ago}.")
-        return
+        return None  # Return None if no prediction is found
 
     # Find the entry closest to the target time within the filtered data
     closest_row = filtered_df.iloc[(filtered_df['Timestamp'] - target_time_24_hours_ago).abs().argsort()[:1]]
@@ -72,10 +71,12 @@ def check_prediction_24_hours_ago(log_file, accuracy_log_file):
         writer.writerow([datetime.now().strftime('%Y-%m-%d %H:%M:%S'), closest_timestamp,
                          predicted_price_24_hours_ago, current_price, percentage_accuracy])
 
-# After your script completes successfully
-def send_ntfy_notification():
+    return percentage_accuracy  # Return percentage accuracy for notification
+
+# Function to send ntfy notification with dynamic content
+def send_ntfy_notification(percentage_accuracy):
     topic = 'btc-script-run'  # Replace with your chosen topic
-    message = 'impvcheck.py script completed successfully.'
+    message = f'impvcheck.py script completed successfully. Percentage Accuracy: {percentage_accuracy:.2f}%'
     url = f'https://ntfy.sh/{topic}'
 
     # Send the notification as an HTTP POST request
@@ -86,9 +87,13 @@ def send_ntfy_notification():
     else:
         print(f'Failed to send notification. Status code: {response.status_code}')
 
-
 # Example usage: Check prediction made 24 hours ago
 prediction_log_file = '/home/t0fum4n/BTCML/btc_price_predictions.csv'  # Path to the log file with predictions
 accuracy_log_file = '/home/t0fum4n/BTCML/btc_price_accuracy_check.csv'  # Path to the separate log file for accuracy checks
-check_prediction_24_hours_ago(prediction_log_file, accuracy_log_file)
-send_ntfy_notification()
+
+# Calculate percentage accuracy and send notification
+percentage_accuracy = check_prediction_24_hours_ago(prediction_log_file, accuracy_log_file)
+
+# Send notification only if percentage_accuracy is calculated
+if percentage_accuracy is not None:
+    send_ntfy_notification(percentage_accuracy)
