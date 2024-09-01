@@ -62,6 +62,6 @@ def check_prediction_24_hours_ago(log_file, accuracy_log_file):
                          predicted_price_24_hours_ago, current_price, percentage_accuracy])
 
 # Example usage: Check prediction made 24 hours ago
-prediction_log_file = 'btc_price_predictions.csv'  # Path to the log file with predictions
-accuracy_log_file = 'btc_price_accuracy_check.csv'  # Path to the separate log file for accuracy checks
+prediction_log_file = '/home/t0fum4n/BTCML/btc_price_predictions.csv'  # Path to the log file with predictions
+accuracy_log_file = '/home/t0fum4n/BTCML/btc_price_accuracy_check.csv'  # Path to the separate log file for accuracy checks
 check_prediction_24_hours_ago(prediction_log_file, accuracy_log_file)
