@@ -1,5 +1,5 @@
 # BTCML
-Some ML scripts for BTC price prediction
+Some ML scripts for BTC price prediction. Uses cron to run every-hour and sends an ntfy notification
 
 # Run the prediction script every hour at the top of the hour
 0 * * * * /usr/bin/python3 /home/t0fum4n/BTCML/thegoodgood.py >> /home/t0fum4n/BTCML/thegoodgood.log 2>&1
