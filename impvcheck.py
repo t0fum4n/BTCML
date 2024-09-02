@@ -90,7 +90,16 @@ def check_prediction_24_hours_ago(log_file, accuracy_log_file):
             writer.writerow([datetime.now().strftime('%Y-%m-%d %H:%M:%S'), closest_timestamp,
                              predicted_price_24_hours_ago, current_price, percentage_difference])
 
-        return percentage_difference  # Return percentage difference for notification
+        # Prepare the notification message
+        notification_message = (f"impvcheck.py script completed successfully.\n"
+                                f"Predicted Price: {predicted_price_24_hours_ago:.2f} USD\n"
+                                f"Actual Price: {current_price:.2f} USD\n"
+                                f"Percentage Difference: {percentage_difference:.2f}%")
+
+        # Send the notification
+        send_ntfy_notification(notification_message)
+
+        return percentage_difference  # Return percentage difference for further use if needed
 
     except Exception as e:
         error_message = f"Error occurred: {str(e)}"
@@ -105,7 +114,3 @@ accuracy_log_file = '/home/t0fum4n/BTCML/btc_price_accuracy_check.csv'  # Path t
 
 # Calculate percentage difference and send notification
 percentage_difference = check_prediction_24_hours_ago(prediction_log_file, accuracy_log_file)
-
-# Send notification only if percentage_difference is calculated
-if percentage_difference is not None:
-    send_ntfy_notification(f"Percentage Difference: {percentage_difference:.2f}%")
