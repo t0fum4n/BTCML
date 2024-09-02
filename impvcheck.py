@@ -22,7 +22,7 @@ def check_btc_price():
     return current_price
 
 
-# Function to check the predicted price from 24 hours ago in the log file and calculate accuracy
+# Function to check the predicted price from 24 hours ago in the log file and calculate percentage difference
 def check_prediction_24_hours_ago(log_file, accuracy_log_file):
     try:
         # Load the log file into a pandas DataFrame
@@ -55,18 +55,17 @@ def check_prediction_24_hours_ago(log_file, accuracy_log_file):
         # Fetch the current Bitcoin price
         current_price = check_btc_price()
 
-        # Calculate the percentage accuracy
-        percentage_accuracy = ((current_price - predicted_price_24_hours_ago) / predicted_price_24_hours_ago) * 100
+        # Calculate the percentage difference
+        percentage_difference = ((current_price - predicted_price_24_hours_ago) / predicted_price_24_hours_ago) * 100
 
         # Output the results
         print(f"Timestamp 24 Hours Ago (Closest): {closest_timestamp}")
         print(f"Predicted Bitcoin Price 24 Hours Ago: {predicted_price_24_hours_ago:.2f} USD")
         print(f"Current Bitcoin Price: {current_price:.2f} USD")
-        print(f"Percentage Difference: {percentage_accuracy:.2f}%")
+        print(f"Percentage Difference: {percentage_difference:.2f}%")
 
         # Log the percentage difference to a separate accuracy CSV file
-        header = ['Current Timestamp', 'Predicted Timestamp', 'Predicted Price', 'Actual Price',
-                  'Percentage Difference']
+        header = ['Current Timestamp', 'Predicted Timestamp', 'Predicted Price', 'Actual Price', 'Percentage Difference']
 
         # Check if the accuracy log file exists and add the header if not
         file_exists = os.path.isfile(accuracy_log_file)
@@ -75,9 +74,9 @@ def check_prediction_24_hours_ago(log_file, accuracy_log_file):
             if not file_exists or os.path.getsize(accuracy_log_file) == 0:
                 writer.writerow(header)  # Write the header if the file doesn't exist or is empty
             writer.writerow([datetime.now().strftime('%Y-%m-%d %H:%M:%S'), closest_timestamp,
-                             predicted_price_24_hours_ago, current_price, percentage_accuracy])
+                             predicted_price_24_hours_ago, current_price, percentage_difference])
 
-        return percentage_accuracy  # Return percentage accuracy for notification
+        return percentage_difference  # Return percentage difference for notification
 
     except Exception as e:
         error_message = f"Error occurred: {str(e)}"
@@ -85,28 +84,13 @@ def check_prediction_24_hours_ago(log_file, accuracy_log_file):
         send_ntfy_notification(error_message)
         return None
 
-
-# Function to send ntfy notification with dynamic content
-def send_ntfy_notification(message):
-    topic = 'btc-script-run'  # Replace with your chosen topic
-    url = f'https://ntfy.sh/{topic}'
-
-    # Send the notification as an HTTP POST request
-    response = requests.post(url, data=message)
-
-    if response.status_code == 200:
-        print('Notification sent successfully!')
-    else:
-        print(f'Failed to send notification. Status code: {response.status_code}')
-
-
 # Example usage: Check prediction made 24 hours ago
 prediction_log_file = '/home/t0fum4n/BTCML/btc_price_predictions.csv'  # Path to the log file with predictions
 accuracy_log_file = '/home/t0fum4n/BTCML/btc_price_accuracy_check.csv'  # Path to the separate log file for accuracy checks
 
-# Calculate percentage accuracy and send notification
-percentage_accuracy = check_prediction_24_hours_ago(prediction_log_file, accuracy_log_file)
+# Calculate percentage difference and send notification
+percentage_difference = check_prediction_24_hours_ago(prediction_log_file, accuracy_log_file)
 
-# Send notification only if percentage_accuracy is calculated
-if percentage_accuracy is not None:
-    send_ntfy_notification(f"Percentage Accuracy: {percentage_accuracy:.2f}%")
+# Send notification only if percentage_difference is calculated
+if percentage_difference is not None:
+    send_ntfy_notification(f"Percentage Difference: {percentage_difference:.2f}%")
