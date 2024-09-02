@@ -22,6 +22,20 @@ def check_btc_price():
     return current_price
 
 
+# Function to send ntfy notification with dynamic content
+def send_ntfy_notification(message):
+    topic = 'btc-script-run'  # Replace with your chosen topic
+    url = f'https://ntfy.sh/{topic}'
+
+    # Send the notification as an HTTP POST request
+    response = requests.post(url, data=message)
+
+    if response.status_code == 200:
+        print('Notification sent successfully!')
+    else:
+        print(f'Failed to send notification. Status code: {response.status_code}')
+
+
 # Function to check the predicted price from 24 hours ago in the log file and calculate percentage difference
 def check_prediction_24_hours_ago(log_file, accuracy_log_file):
     try:
@@ -83,6 +97,7 @@ def check_prediction_24_hours_ago(log_file, accuracy_log_file):
         print(error_message)
         send_ntfy_notification(error_message)
         return None
+
 
 # Example usage: Check prediction made 24 hours ago
 prediction_log_file = '/home/t0fum4n/BTCML/btc_price_predictions.csv'  # Path to the log file with predictions
