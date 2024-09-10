@@ -3,7 +3,6 @@ import pandas as pd
 from datetime import datetime, timedelta
 import csv
 import os
-import requests
 
 
 # Function to fetch and display the current Bitcoin price with a timestamp
@@ -20,20 +19,6 @@ def check_btc_price():
     print(f"Current Bitcoin price: {current_price:.2f} USD")
 
     return current_price
-
-
-# Function to send ntfy notification with dynamic content
-def send_ntfy_notification(message):
-    topic = 'btc-script-run'  # Replace with your chosen topic
-    url = f'https://ntfy.sh/{topic}'
-
-    # Send the notification as an HTTP POST request
-    response = requests.post(url, data=message)
-
-    if response.status_code == 200:
-        print('Notification sent successfully!')
-    else:
-        print(f'Failed to send notification. Status code: {response.status_code}')
 
 
 # Function to check the predicted price from 24 hours ago in the log file and calculate percentage difference
@@ -54,9 +39,7 @@ def check_prediction_24_hours_ago(log_file, accuracy_log_file):
         filtered_df = df[(df['Timestamp'] >= time_window_start) & (df['Timestamp'] <= time_window_end)]
 
         if filtered_df.empty:
-            error_message = f"No prediction found within 1 hour of 24 hours ago: {target_time_24_hours_ago}."
-            print(error_message)
-            send_ntfy_notification(error_message)
+            print(f"No prediction found within 1 hour of 24 hours ago: {target_time_24_hours_ago}.")
             return None  # Return None if no prediction is found
 
         # Find the entry closest to the target time within the filtered data
@@ -78,7 +61,7 @@ def check_prediction_24_hours_ago(log_file, accuracy_log_file):
         print(f"Current Bitcoin Price: {current_price:.2f} USD")
         print(f"Percentage Difference: {percentage_difference:.2f}%")
 
-        # Log the percentage difference to a separate accuracy CSV file
+        # Log the results to the accuracy CSV file with the desired format
         header = ['Current Timestamp', 'Predicted Timestamp', 'Predicted Price', 'Actual Price', 'Percentage Difference']
 
         # Check if the accuracy log file exists and add the header if not
@@ -90,29 +73,16 @@ def check_prediction_24_hours_ago(log_file, accuracy_log_file):
             writer.writerow([datetime.now().strftime('%Y-%m-%d %H:%M:%S'), closest_timestamp,
                              predicted_price_24_hours_ago, current_price, percentage_difference])
 
-        # Prepare the notification message
-        notification_message = (f"impvcheck.py script completed successfully.\n"
-                                f"Predicted Price: {predicted_price_24_hours_ago:.2f} USD\n"
-                                f"Actual Price: {current_price:.2f} USD\n"
-                                f"Percentage Difference: {percentage_difference:.2f}%")
-
-        # Send the notification
-        send_ntfy_notification(notification_message)
-
         return percentage_difference  # Return percentage difference for further use if needed
 
     except Exception as e:
-        error_message = f"Error occurred: {str(e)}"
-        print(error_message)
-        send_ntfy_notification(error_message)
+        print(f"Error occurred: {str(e)}")
         return None
 
 
 # Example usage: Check prediction made 24 hours ago
-#prediction_log_file = '/home/t0fum4n/BTCML/btc_price_predictions.csv'  # linux
-prediction_log_file = 'btc_price_predictions.csv'
-#accuracy_log_file = '/home/t0fum4n/BTCML/btc_price_accuracy_check.csv'  # linux
-accuracy_log_file = 'btc_price_accuracy_check.csv'
+prediction_log_file = 'btc_price_prediction_log.csv'
+accuracy_log_file = 'btc_price_accuracy_check-2.csv'
 
-# Calculate percentage difference and send notification
+# Calculate percentage difference
 percentage_difference = check_prediction_24_hours_ago(prediction_log_file, accuracy_log_file)
