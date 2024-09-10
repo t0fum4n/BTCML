@@ -138,12 +138,12 @@ actual_prices = scaler.inverse_transform(
 )[:, 0]
 
 # Ensure consistent lengths by trimming NaN values and handling empty arrays
-if len(actual_prices) == 0 or len(test_predict_prices) == 0:
-    raise ValueError("Found input variables with inconsistent numbers of samples.")
-
 valid_indices = ~np.isnan(actual_prices) & ~np.isnan(test_predict_prices)
 actual_prices = actual_prices[valid_indices]
 test_predict_prices = test_predict_prices[valid_indices]
+
+if len(actual_prices) == 0 or len(test_predict_prices) == 0:
+    raise ValueError("Found array with 0 samples after removing NaNs.")
 
 # Calculate metrics
 mae = mean_absolute_error(actual_prices, test_predict_prices)
