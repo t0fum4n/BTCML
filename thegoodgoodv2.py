@@ -137,11 +137,10 @@ actual_prices = scaler.inverse_transform(
     np.concatenate((y_test.reshape(-1, 1), np.zeros((y_test.shape[0], len(features) - 1))), axis=1)
 )[:, 0]
 
-# Check for NaN values in actual_prices and test_predict_prices
-if np.isnan(actual_prices).any() or np.isnan(test_predict_prices).any():
-    print("NaN values found in actual_prices or test_predict_prices.")
-    actual_prices = actual_prices[~np.isnan(actual_prices)]
-    test_predict_prices = test_predict_prices[~np.isnan(test_predict_prices)]
+# Ensure consistent lengths by trimming NaN values from both arrays
+valid_indices = ~np.isnan(actual_prices) & ~np.isnan(test_predict_prices)
+actual_prices = actual_prices[valid_indices]
+test_predict_prices = test_predict_prices[valid_indices]
 
 # Calculate metrics
 mae = mean_absolute_error(actual_prices, test_predict_prices)
