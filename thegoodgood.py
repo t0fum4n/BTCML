@@ -12,7 +12,7 @@ import requests
 
 # Tunable Parameters
 START_DATE = '2018-01-01'
-END_DATE = '2024-08-30'
+END_DATE = '2024-09-09'
 
 TIME_STEP = 10
 TRAIN_SIZE_RATIO = 0.6
