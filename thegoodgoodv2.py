@@ -137,7 +137,10 @@ actual_prices = scaler.inverse_transform(
     np.concatenate((y_test.reshape(-1, 1), np.zeros((y_test.shape[0], len(features) - 1))), axis=1)
 )[:, 0]
 
-# Ensure consistent lengths by trimming NaN values from both arrays
+# Ensure consistent lengths by trimming NaN values and handling empty arrays
+if len(actual_prices) == 0 or len(test_predict_prices) == 0:
+    raise ValueError("Found input variables with inconsistent numbers of samples.")
+
 valid_indices = ~np.isnan(actual_prices) & ~np.isnan(test_predict_prices)
 actual_prices = actual_prices[valid_indices]
 test_predict_prices = test_predict_prices[valid_indices]
