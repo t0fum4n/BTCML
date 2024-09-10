@@ -31,8 +31,6 @@ feature_toggle = {
     'Returns': True,
     'MA50': True,
     'MA200': True,
-    'Accuracy': True,  # Add accuracy from the CSV file as a feature
-    'Percentage Difference': True  # Add percentage difference from the CSV file
 }
 
 # Step 1: Load Bitcoin data from Yahoo Finance
@@ -53,7 +51,7 @@ df.dropna(inplace=True)
 # Load accuracy check data
 accuracy_check_data = pd.read_csv('btc_price_accuracy_check.csv', parse_dates=['Current Timestamp'])
 
-# Check if the necessary columns exist
+# Check if 'Percentage Difference' exists
 if 'Percentage Difference' not in accuracy_check_data.columns:
     raise KeyError("'Percentage Difference' not found in btc_price_accuracy_check.csv")
 
@@ -69,16 +67,11 @@ df.index = pd.to_datetime(df.index)
 # Merge the accuracy check data with the main Bitcoin data on the date index
 df = df.merge(accuracy_check_data[['Accuracy', 'Percentage Difference']], left_index=True, right_index=True, how='left')
 
-# Forward fill any missing values from the merge
-df.ffill(inplace=True)  # Replace fillna(method='ffill', ...) with ffill()
-
-# Ensure there is enough data for TIME_STEP
-if len(df) <= TIME_STEP:
-    raise ValueError("Not enough data to create sequences with the specified TIME_STEP. "
-                     "Increase the amount of data or reduce the TIME_STEP.")
+# Fill NaN values
+df.fillna(method='ffill', inplace=True)
 
 # Prepare data for LSTM model
-features = [key for key, value in feature_toggle.items() if value]
+features = [key for key, value in feature_toggle.items() if value] + ['Accuracy', 'Percentage Difference']
 data = df[features].values
 
 # Normalize data
@@ -96,16 +89,11 @@ def create_dataset(dataset, time_step=1):
     for i in range(len(dataset) - time_step - 1):
         a = dataset[i:(i + time_step), :]
         X.append(a)
-        Y.append(dataset[i + time_step, 0])  # Target is 'Close' price
+        Y.append(dataset[i + time_step, 0])
     return np.array(X), np.array(Y)
 
 X_train, y_train = create_dataset(train_data, TIME_STEP)
 X_test, y_test = create_dataset(test_data, TIME_STEP)
-
-# Ensure X_train and X_test are not empty
-if X_train.size == 0 or X_test.size == 0:
-    raise ValueError("X_train or X_test is empty. Not enough data after creating sequences. "
-                     "Consider adjusting the TIME_STEP or checking the data preparation steps.")
 
 # Reshape input to be [samples, time steps, features] which is required for LSTM
 X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2])
@@ -149,6 +137,13 @@ actual_prices = scaler.inverse_transform(
     np.concatenate((y_test.reshape(-1, 1), np.zeros((y_test.shape[0], len(features) - 1))), axis=1)
 )[:, 0]
 
+# Check for NaN values in actual_prices and test_predict_prices
+if np.isnan(actual_prices).any() or np.isnan(test_predict_prices).any():
+    print("NaN values found in actual_prices or test_predict_prices.")
+    actual_prices = actual_prices[~np.isnan(actual_prices)]
+    test_predict_prices = test_predict_prices[~np.isnan(test_predict_prices)]
+
+# Calculate metrics
 mae = mean_absolute_error(actual_prices, test_predict_prices)
 mse = mean_squared_error(actual_prices, test_predict_prices)
 rmse = np.sqrt(mse)
@@ -167,7 +162,7 @@ accuracy_score = (1 - composite_score) * 100
 timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 # Log the results to a CSV file
-log_file = '/home/t0fum4n/BTCML/btc_price_predictions_with_accuracy.csv'
+log_file = '/home/t0fum4n/BTCML/btc_price_predictions-1.csv'
 header = ['Timestamp', 'Current Price', 'Predicted Price', 'Percentage Change', 'MAE', 'MSE', 'RMSE', 'MAPE', 'Accuracy Score']
 
 # Check if the log file exists and add the header if not
@@ -177,6 +172,20 @@ with open(log_file, 'a', newline='') as file:
     if not file_exists:
         writer.writerow(header)  # Write the header if the file doesn't exist
     writer.writerow([timestamp, current_price, predicted_price[0], percentage_change, mae, mse, rmse, mape, accuracy_score])
+
+# Function to send ntfy notification with dynamic content
+def send_ntfy_notification(accuracy_score):
+    topic = 'btc-script-run'  # Replace with your chosen topic
+    message = f'TheGoodGood.py script completed successfully. Model Accuracy Score: {accuracy_score:.2f}%'
+    url = f'https://ntfy.sh/{topic}'
+
+    # Send the notification as an HTTP POST request
+    response = requests.post(url, data=message)
+
+    if response.status_code == 200:
+        print('Notification sent successfully!')
+    else:
+        print(f'Failed to send notification. Status code: {response.status_code}')
 
 # Output the logging information
 print(f"Timestamp: {timestamp}")
@@ -188,3 +197,6 @@ print(f"Mean Squared Error (MSE): {mse:.2f}")
 print(f"Root Mean Squared Error (RMSE): {rmse:.2f} USD")
 print(f"Mean Absolute Percentage Error (MAPE): {mape:.2%}")
 print(f"Model Accuracy Score: {accuracy_score:.2f}%")
+
+# Call the notification function with the accuracy score
+#send_ntfy_notification(accuracy_score)
