@@ -32,7 +32,7 @@ feature_toggle = {
     'MA50': True,
     'MA200': True,
     'Accuracy': True,  # Add accuracy from the CSV file as a feature
-    'Percentage_Difference': True  # Add percentage difference from the CSV file
+    'Percentage Difference': True  # Add percentage difference from the CSV file
 }
 
 # Step 1: Load Bitcoin data from Yahoo Finance
