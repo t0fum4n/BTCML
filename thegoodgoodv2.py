@@ -31,8 +31,8 @@ feature_toggle = {
     'Returns': True,
     'MA50': True,
     'MA200': True,
-    'Accuracy': True,  # Add accuracy from the csv file as a feature
-    'Percentage_Difference': True  # Add percentage difference from the csv file
+    'Accuracy': True,  # Add accuracy from the CSV file as a feature
+    'Percentage_Difference': True  # Add percentage difference from the CSV file
 }
 
 # Step 1: Load Bitcoin data from Yahoo Finance
@@ -48,30 +48,29 @@ if feature_toggle['MA50']:
 if feature_toggle['MA200']:
     df['MA200'] = df['Close'].rolling(window=200).mean()
 
-if feature_toggle['Open']:
-    df['Open'] = df['Open']
-
-if feature_toggle['High']:
-    df['High'] = df['High']
-
-if feature_toggle['Low']:
-    df['Low'] = df['Low']
-
-if feature_toggle['Volume']:
-    df['Volume'] = df['Volume']
-
 df.dropna(inplace=True)
 
 # Load accuracy check data
-accuracy_check_data = pd.read_csv('btc_price_accuracy_check.csv', parse_dates=['Current Timestamp', 'Predicted Timestamp'])
+accuracy_check_data = pd.read_csv('btc_price_accuracy_check.csv', parse_dates=['Current Timestamp'])
 
-# Add accuracy check data as new features
+# Check if the necessary columns exist
+if 'Percentage Difference' not in accuracy_check_data.columns:
+    raise KeyError("'Percentage Difference' not found in btc_price_accuracy_check.csv")
+
+# Add accuracy as a new feature and percentage difference as a feature
 accuracy_check_data['Accuracy'] = 100 - abs(accuracy_check_data['Percentage Difference'])
+
+# Ensure the index is properly set to the timestamp in both dataframes for merging
 accuracy_check_data.set_index('Current Timestamp', inplace=True)
+
+# Convert the index of Bitcoin data to datetime if necessary
+df.index = pd.to_datetime(df.index)
 
 # Merge the accuracy check data with the main Bitcoin data on the date index
 df = df.merge(accuracy_check_data[['Accuracy', 'Percentage Difference']], left_index=True, right_index=True, how='left')
-df.fillna(method='ffill', inplace=True)  # Forward fill to handle missing values from the merge
+
+# Forward fill any missing values from the merge
+df.ffill(inplace=True)  # Replace fillna(method='ffill', ...) with ffill()
 
 # Ensure there is enough data for TIME_STEP
 if len(df) <= TIME_STEP:
